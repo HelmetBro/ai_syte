@@ -84,10 +84,8 @@ public class CameraActivity extends AppCompatActivity {
 
         }
     };
-    private ImageReader imageReader;
     //Save to FILE
     private File file;
-    private boolean mFlashSupported;
     private Handler mBackgroundHandler;
     CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
         @Override
@@ -104,10 +102,12 @@ public class CameraActivity extends AppCompatActivity {
         @Override
         public void onError(@NonNull CameraDevice cameraDevice, int i) {
             cameraDevice.close();
-            cameraDevice = null;
         }
     };
     private HandlerThread mBackgroundThread;
+
+    public CameraActivity() {
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,11 +120,11 @@ public class CameraActivity extends AppCompatActivity {
             actionBar.hide();
         /* HIDES STATUS BAR */
 
-        textureView = (TextureView) findViewById(R.id.textureView);
+        textureView = findViewById(R.id.textureView);
         //From Java 1.4 , you can use keyword 'assert' to check expression true or false
         assert textureView != null;
         textureView.setSurfaceTextureListener(textureListener);
-        btnCapture = (Button) findViewById(R.id.btnCapture);
+        btnCapture = findViewById(R.id.btnCapture);
         btnCapture.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
