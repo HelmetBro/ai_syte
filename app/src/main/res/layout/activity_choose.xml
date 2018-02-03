@@ -7,4 +7,20 @@
     android:background="@drawable/background"
     tools:context="com.hackuci.ai_syte.ChooseActivity">
 
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="368dp"
+        android:layout_height="551dp"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp">
+
+
+        <ImageButton
+            android:id="@+id/imageButton5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            app:srcCompat="@drawable/camera"
+            tools:layout_editor_absoluteX="110dp"
+            tools:layout_editor_absoluteY="168dp" />
+    </android.support.constraint.ConstraintLayout>
 </android.support.constraint.ConstraintLayout>
