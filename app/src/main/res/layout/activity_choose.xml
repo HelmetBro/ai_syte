@@ -34,7 +34,17 @@
             android:layout_alignStart="@+id/camera"
             android:background="@null"
             app:srcCompat="@drawable/gallery"
+            android:onClick="onButtonClicked"
             tools:layout_editor_absoluteX="120dp"
             tools:layout_editor_absoluteY="139dp" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/container"
+            android:layout_toEndOf="@+id/gallery">
+
+        </RelativeLayout>
+
     </RelativeLayout>
 </RelativeLayout>
