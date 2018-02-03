@@ -3,6 +3,7 @@ package com.hackuci.ai_syte;
 import android.Manifest;
 import android.app.ActionBar;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
@@ -40,6 +41,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -59,7 +61,6 @@ public class CameraActivity extends AppCompatActivity {
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
 
-    private Button btnCapture;
     private TextureView textureView;
     private String cameraId;
     private CameraDevice cameraDevice;
@@ -127,8 +128,7 @@ public class CameraActivity extends AppCompatActivity {
         //From Java 1.4 , you can use keyword 'assert' to check expression true or false
         assert textureView != null;
         textureView.setSurfaceTextureListener(textureListener);
-        btnCapture = findViewById(R.id.btnCapture);
-        btnCapture.setOnClickListener(new View.OnClickListener() {
+        textureView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 takePicture();
@@ -136,16 +136,31 @@ public class CameraActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+
+        // HIDES NOTIFICATION BAR
+        View view = getWindow().getDecorView();
+        if (hasFocus && view != null) {
+            view.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
+        // HIDES NOTIFICATION BAR
+
+    }
+
     private void takePicture() {
         if (cameraDevice == null)
             return;
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
-            CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraDevice.getId());
-            Size[] jpegSizes = null;
-            if (characteristics != null)
-                jpegSizes = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-                        .getOutputSizes(ImageFormat.JPEG);
+            manager.getCameraCharacteristics(cameraDevice.getId());
 
             //Capture image with custom size
             final ImageReader reader = ImageReader.newInstance(PIXEL_WIDTH, PIXEL_HEIGHT, ImageFormat.JPEG, 1);
@@ -237,7 +252,7 @@ public class CameraActivity extends AppCompatActivity {
             Surface surface = new Surface(texture);
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureRequestBuilder.addTarget(surface);
-            cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
+            cameraDevice.createCaptureSession(Collections.singletonList(surface), new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                     if (cameraDevice == null)
@@ -298,6 +313,12 @@ public class CameraActivity extends AppCompatActivity {
                 finish();
             }
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        startActivity(new Intent(CameraActivity.this,
+                ChooseActivity.class));
     }
 
     @Override
