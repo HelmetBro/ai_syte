@@ -1,3 +1,1 @@
-include ':app', ':example', ':library'
-project(':example').projectDir = new File('app/src/main/res/android-sdk-master/android-sdk-master/example')
-project(':library').projectDir = new File('app/src/main/res/android-sdk-master/android-sdk-master/library')
+include ':app'

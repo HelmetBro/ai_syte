@@ -4,8 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/ai_syte.iml" filepath="$PROJECT_DIR$/ai_syte.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/src/main/res/android-sdk-master/android-sdk-master/example/example.iml" filepath="$PROJECT_DIR$/app/src/main/res/android-sdk-master/android-sdk-master/example/example.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/src/main/res/android-sdk-master/android-sdk-master/library/library.iml" filepath="$PROJECT_DIR$/app/src/main/res/android-sdk-master/android-sdk-master/library/library.iml" />
     </modules>
   </component>
 </project>

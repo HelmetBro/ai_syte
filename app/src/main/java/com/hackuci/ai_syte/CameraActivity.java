@@ -1,6 +1,7 @@
 package com.hackuci.ai_syte;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -25,16 +27,34 @@ import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
-import android.widget.Button;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.vision.v1.Vision;
+import com.google.api.services.vision.v1.VisionRequestInitializer;
+import com.google.api.services.vision.v1.model.AnnotateImageRequest;
+import com.google.api.services.vision.v1.model.AnnotateImageResponse;
+import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
+import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
+import com.google.api.services.vision.v1.model.EntityAnnotation;
+import com.google.api.services.vision.v1.model.Feature;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -60,6 +80,12 @@ public class CameraActivity extends AppCompatActivity {
         ORIENTATIONS.append(Surface.ROTATION_180, 270);
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
+
+    private SlidingUpPanelLayout mLayout;
+    private static final String TAG = "MainAcitvity";
+    List<String> array_list;
+    TextView textView ;
+    ListView listview;
 
     private TextureView textureView;
     private String cameraId;
@@ -134,6 +160,150 @@ public class CameraActivity extends AppCompatActivity {
                 takePicture();
             }
         });
+
+        init();    // call init method
+        setListview();
+        panelListener();
+    }
+
+    /**
+     * Initialization of the textview and SlidingUpPanelLayout
+     */
+    public void init(){
+
+        mLayout = findViewById(R.id.sliding_layout);
+        textView = findViewById(R.id.list_main);
+        listview = findViewById(R.id.list);
+    }
+    public List<String> array_list(){
+        array_list = Arrays.asList(
+                "This",
+                "Is",
+                "An",
+                "Example",
+                "ListView",
+                "That",
+                "You",
+                "Can",
+                "Scroll",
+                ".",
+                "It",
+                "Shows",
+                "How",
+                "Any",
+                "Scrollable",
+                "View",
+                "Can",
+                "Be",
+                "Included",
+                "As",
+                "A",
+                "Child",
+                "Of",
+                "SlidingUpPanelLayout"
+        );
+        return array_list;
+    }
+    /**
+     *  Set array adapter to display a list of items.
+     *  Called a callback setOnItemClickListener method,
+     *  It calls when user click on the list of item.
+     */
+    public void setListview(){
+
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView parent, View view, int position, long id) {
+
+                mLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+                textView.setText(array_list().get(position));
+                Toast.makeText(CameraActivity.this, "onItemClick" , Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        /**
+         * This is array adapter, it takes context of the activity as a first parameter,
+         * layout of the listview as a second parameter and array as a third parameter.
+         */
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+                this,
+                android.R.layout.simple_list_item_1,
+                array_list());
+
+        listview.setAdapter(arrayAdapter);
+
+    }
+    /**
+     * Call setPanelSlidelistener method to listen open and close of slide panel
+     **/
+    public void panelListener(){
+        mLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+
+            // During the transition of expand and collapse onPanelSlide function will be called.
+            @Override
+            public void onPanelSlide(View panel, float slideOffset) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                Log.e(TAG, "onPanelSlide, offset " + slideOffset);
+            }
+
+            // Called when secondary layout is dragged up by user
+            @Override
+            public void onPanelExpanded(View panel) {
+
+                Log.e(TAG, "onPanelExpanded");
+            }
+
+            // Called when secondary layout is dragged down by user
+            @Override
+            public void onPanelCollapsed(View panel) {
+
+                Log.e(TAG, "onPanelCollapsed");
+            }
+
+            @Override
+            public void onPanelAnchored(View panel) {
+
+                Log.e(TAG, "onPanelAnchored");
+            }
+
+            @Override
+            public void onPanelHidden(View panel) {
+
+                Log.e(TAG, "onPanelHidden");
+            }
+        });
     }
 
     @Override
@@ -160,6 +330,7 @@ public class CameraActivity extends AppCompatActivity {
             return;
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
+            assert manager != null;
             manager.getCameraCharacteristics(cameraDevice.getId());
 
             //Capture image with custom size
@@ -188,8 +359,6 @@ public class CameraActivity extends AppCompatActivity {
                         buffer.get(bytes);
                         save(bytes);
 
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
                     } catch (IOException e) {
                         e.printStackTrace();
                     } finally {
@@ -200,6 +369,7 @@ public class CameraActivity extends AppCompatActivity {
                     }
                 }
 
+                @SuppressLint("StaticFieldLeak")
                 private void save(byte[] bytes) throws IOException {
                     OutputStream outputStream = null;
                     try {
@@ -209,6 +379,89 @@ public class CameraActivity extends AppCompatActivity {
                         if (outputStream != null)
                             outputStream.close();
                     }
+
+                    com.google.api.services.vision.v1.model.Image base64EncodedImage =
+                            new com.google.api.services.vision.v1.model.Image();
+                    base64EncodedImage.encodeContent(bytes);
+
+
+                    Feature feature = new Feature();
+                    feature.setType("LANDMARK_DETECTION");
+                    feature.setMaxResults(10);
+
+                    final List<Feature> featureList = new ArrayList<>();
+                    featureList.add(feature);
+                    final List<AnnotateImageRequest> annotateImageRequests = new ArrayList<>();
+
+
+                    AnnotateImageRequest annotateImageReq = new AnnotateImageRequest();
+                    annotateImageReq.setFeatures(featureList);
+                    annotateImageReq.setImage(base64EncodedImage);
+                    annotateImageRequests.add(annotateImageReq);
+
+
+
+
+
+
+
+                    new AsyncTask<Object, Void, String>() {
+                        @Override
+                        protected String doInBackground(Object... params) {
+                            try {
+
+                                HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
+                                JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+
+                                VisionRequestInitializer requestInitializer = new VisionRequestInitializer("AIzaSyBVoIgIwQ5dWN0ZTTA4cnZHOUJws5CBZW0");
+
+                                Vision.Builder builder = new Vision.Builder(httpTransport, jsonFactory, null);
+                                builder.setVisionRequestInitializer(requestInitializer);
+
+                                Vision vision = builder.build();
+
+                                BatchAnnotateImagesRequest batchAnnotateImagesRequest = new BatchAnnotateImagesRequest();
+                                batchAnnotateImagesRequest.setRequests(annotateImageRequests);
+
+                                Vision.Images.Annotate annotateRequest = vision.images().annotate(batchAnnotateImagesRequest);
+                                annotateRequest.setDisableGZipContent(true);
+                                BatchAnnotateImagesResponse response = annotateRequest.execute();
+
+                                return convertResponseToString(response);
+                            } catch (GoogleJsonResponseException e) {
+                                Log.d(TAG, "failed to make API request because " + e.getContent());
+                            } catch (IOException e) {
+                                Log.d(TAG, "failed to make API request because of other IOException " + e.getMessage());
+                            }
+                            return "Cloud Vision API request failed. Check logs for details.";
+                        }
+
+                        protected void onPostExecute(String result) {
+
+                            System.out.println(result);
+
+
+//                            visionAPIData.setText(result);
+//                            imageUploadProgress.setVisibility(View.INVISIBLE);
+                        }
+                    }.execute();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 }
             };
 
@@ -243,6 +496,30 @@ public class CameraActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
+    private String convertResponseToString(BatchAnnotateImagesResponse response) {
+        AnnotateImageResponse imageResponses = response.getResponses().get(0);
+
+        List<EntityAnnotation> entityAnnotations;
+
+        entityAnnotations = imageResponses.getLabelAnnotations();
+        return formatAnnotation(entityAnnotations);
+    }
+
+    private String formatAnnotation(List<EntityAnnotation> entityAnnotation) {
+        String message = "";
+
+        if (entityAnnotation != null) {
+            for (EntityAnnotation entity : entityAnnotation) {
+                message = message + "    " + entity.getDescription() + " " + entity.getScore();
+                message += "\n";
+            }
+        } else {
+            message = "Nothing Found";
+        }
+        return message;
+    }
+
 
     private void createCameraPreview() {
         try {
@@ -316,12 +593,6 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onBackPressed() {
-        startActivity(new Intent(CameraActivity.this,
-                ChooseActivity.class));
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         startBackgroundThread();
@@ -352,6 +623,28 @@ public class CameraActivity extends AppCompatActivity {
         mBackgroundThread = new HandlerThread("Camera Background");
         mBackgroundThread.start();
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
+    }
+
+    /**
+     * Collapsed layout, when user press back button
+     **/
+    @Override
+    public void onBackPressed() {
+
+        if (mLayout != null &&
+                (mLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED
+                        || mLayout.getPanelState() ==
+                        SlidingUpPanelLayout.PanelState.ANCHORED)) {
+
+            mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+
+        } else {
+
+            super.onBackPressed();
+
+            startActivity(new Intent(CameraActivity.this,
+                    ChooseActivity.class));
+        }
     }
 
 }

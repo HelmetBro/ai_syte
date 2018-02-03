@@ -9,8 +9,6 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/app/src/main/res/android-sdk-master/android-sdk-master/example" />
-            <option value="$PROJECT_DIR$/app/src/main/res/android-sdk-master/android-sdk-master/library" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

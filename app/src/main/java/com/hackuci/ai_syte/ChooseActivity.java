@@ -9,21 +9,17 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 
 public class ChooseActivity extends AppCompatActivity {
@@ -45,7 +41,7 @@ public class ChooseActivity extends AppCompatActivity {
         /* HIDES STATUS BAR */
 
         // connect the variable to the images_proj.xml
-        imageViewGallery = findViewById(R.id./*image view type*/);
+        imageViewGallery = findViewById(R.id.gallery);
         if (savedInstanceState == null) {
             getFragmentManager().beginTransaction()
                     .add(R.id.container, new Fragment())
@@ -94,9 +90,7 @@ public class ChooseActivity extends AppCompatActivity {
 
         if (requestCode == 1) {
             File f = new File(Environment.getExternalStorageDirectory().toString());
-            if(f != null){
-                Toast.makeText(getApplication().getApplicationContext(), " not null ", Toast.LENGTH_LONG).show();
-            }
+            Toast.makeText(getApplication().getApplicationContext(), " not null ", Toast.LENGTH_LONG).show();
             try {
                 Bitmap bitmap;
                 BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
@@ -116,10 +110,6 @@ public class ChooseActivity extends AppCompatActivity {
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 85, outFile);
                     outFile.flush();
                     outFile.close();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -130,7 +120,9 @@ public class ChooseActivity extends AppCompatActivity {
 
             Uri selectedImage = data.getData();
             String[] filePath = { MediaStore.Images.Media.DATA };
+            assert selectedImage != null;
             Cursor c = getApplication().getContentResolver().query(selectedImage, filePath, null, null, null);
+            assert c != null;
             c.moveToFirst();
             int columnIndex = c.getColumnIndex(filePath[0]);
             String picturePath = c.getString(columnIndex);
