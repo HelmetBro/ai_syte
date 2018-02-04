@@ -20,6 +20,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -81,6 +82,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class CameraActivity extends AppCompatActivity {
@@ -361,26 +364,20 @@ public class CameraActivity extends AppCompatActivity {
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView parent, View view, int position, long id) {
-
                 mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
-                LinearLayout layout;
-                TextView tv;
-                WindowManager.LayoutParams params;
 
-                popUp = new PopupWindow(CameraActivity.this);
-                layout = new LinearLayout(CameraActivity.this);
-                layout.setBackgroundResource(R.drawable.round_layout);
-                popUp.setBackgroundDrawable(getResources().getDrawable(R.drawable.round_layout));
-                tv = new TextView(CameraActivity.this);
-                params = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
-                        WindowManager.LayoutParams.WRAP_CONTENT);
-                layout.setOrientation(LinearLayout.VERTICAL);
-                tv.setText("Object name appears here in large font");
-                popUp.setHeight(1300);
-                popUp.setWidth(1000);
-                layout.addView(tv, params);
-                popUp.setContentView(layout);
-                popUp.showAtLocation(findViewById(R.id.list_main), Gravity.CENTER, 0, -70);
+                String name = (String) listview.getItemAtPosition(position);
+
+                String search = name.split("-")[0];
+                search = search.trim();
+
+                Pattern p = Pattern.compile("%20");
+                Matcher m = p.matcher(search);
+
+                String link = "http://www.google.com/search?q=" + m.replaceAll(" ");
+                //open up wiki
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
+                startActivity(browserIntent);
             }
         });
 

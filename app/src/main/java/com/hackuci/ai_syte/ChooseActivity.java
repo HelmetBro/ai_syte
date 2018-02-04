@@ -28,6 +28,7 @@ public class ChooseActivity extends AppCompatActivity implements AdapterView.OnI
     ImageView imageViewGallery;
     View decorView;
     Spinner language;
+    ImageView logo;
     private String[] choices = new String[]{"English", "Spanish", "German", "Japanese"};
 
     public static String LANGUAGE_CHOICE = "English"; //default
@@ -47,6 +48,9 @@ public class ChooseActivity extends AppCompatActivity implements AdapterView.OnI
 
         // connect the variable to the images_proj.xml
         imageViewGallery = findViewById(R.id.gallery);
+        logo = findViewById(R.id.logo);
+        logo.setBackgroundResource(R.drawable.smaller_round_layout);
+
 
         language = findViewById(R.id.language);
         language.setOnItemSelectedListener(this);
@@ -154,4 +158,10 @@ public class ChooseActivity extends AppCompatActivity implements AdapterView.OnI
     public void onNothingSelected(AdapterView<?> adapterView) {
 
     }
+
+    public boolean onMoreButtonClicked(View view) {
+        startActivity(new Intent(ChooseActivity.this, MoreActivity.class));
+        return true;
+    }
+
 }

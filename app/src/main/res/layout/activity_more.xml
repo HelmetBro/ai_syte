@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.hackuci.ai_syte.More">
+
+    <RelativeLayout
+        android:layout_width="368dp"
+        android:layout_height="551dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="159dp"
+            android:layout_height="201dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="26dp"
+            app:srcCompat="@drawable/logo"
+            tools:layout_editor_absoluteX="105dp"
+            tools:layout_editor_absoluteY="29dp" />
+
+        <TextView
+            android:id="@+id/description"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/names"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="23dp"
+            android:ems="10"
+            android:inputType="textMultiLine"
+            android:text="AI_SYTE is an object-recognizing application that translates detected objects into multiple languages. This project was created during HackUCI 2018 with thanks to various API's and sources."
+            android:textAlignment="center"
+            tools:layout_editor_absoluteX="102dp"
+            tools:layout_editor_absoluteY="334dp" />
+
+        <TextView
+            android:id="@+id/names"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:ems="10"
+            android:inputType="textMultiLine"
+            android:text="Eric Parsons\nEnkhjin Enkhjargal\nDavid Harvey"
+            android:textAlignment="center"
+            tools:layout_editor_absoluteX="102dp"
+            tools:layout_editor_absoluteY="249dp" />
+
+        <TextView
+            android:id="@+id/copyrights"
+            android:layout_width="210dp"
+            android:layout_height="32dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignStart="@+id/credentials"
+            android:text="© 2018 "
+            android:textAlignment="center"
+            tools:layout_editor_absoluteX="79dp"
+            tools:layout_editor_absoluteY="503dp" />
+
+        <TextView
+            android:id="@+id/credentials"
+            android:layout_width="210dp"
+            android:layout_height="74dp"
+            android:layout_above="@+id/copyrights"
+            android:layout_centerHorizontal="true"
+            android:text="- Credit Due -\nIMB Watson, Google Cloud Vision,\nGSON, Icons8"
+            android:textAlignment="center"
+            tools:layout_editor_absoluteX="79dp"
+            tools:layout_editor_absoluteY="404dp" />
+    </RelativeLayout>
+</RelativeLayout>
