@@ -328,9 +328,13 @@ public class CameraActivity extends AppCompatActivity {
          * This is array adapter, it takes context of the activity as a first parameter,
          * layout of the listview as a second parameter and array as a third parameter.
          */
+//        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
+//                this,
+//                android.R.layout.simple_list_item_1,
+//                array_list());
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
                 this,
-                android.R.layout.simple_list_item_1,
+                R.layout.list_entry,
                 array_list());
 
         listview.setAdapter(arrayAdapter);
