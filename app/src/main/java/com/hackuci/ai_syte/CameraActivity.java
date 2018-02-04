@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -53,6 +52,7 @@ import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
 import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
 import com.google.api.services.vision.v1.model.EntityAnnotation;
 import com.google.api.services.vision.v1.model.Feature;
+import com.google.api.services.vision.v1.model.Image;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.io.ByteArrayOutputStream;
@@ -357,51 +357,17 @@ public class CameraActivity extends AppCompatActivity {
                             outputStream.close();
                     }
 
-
-
-//                    System.out.println(bytes);
-//
-//                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-//                    Bitmap bitmap = BitmapFactory.decodeFile(FILE_PATH);
-//                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
-//                    byte[] imageBytes = byteArrayOutputStream.toByteArray();
-//
-//                    com.google.api.services.vision.v1.model.Image base64EncodedImage =
-//                            new com.google.api.services.vision.v1.model.Image();
-//                    base64EncodedImage.encodeContent(imageBytes);
-//
-//                    System.out.println(base64EncodedImage.size());
-//                    System.out.println(base64EncodedImage.getContent());
-
-
-                    File imgFile = new File(FILE_PATH);
-                    Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-
-                    com.google.api.services.vision.v1.model.Image base64EncodedImage =
-                            new com.google.api.services.vision.v1.model.Image();
-                    // Convert the bitmap to a JPEG
-                    // Just in case it's a format that Android understands but Cloud Vision
-                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-                    myBitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
-                    byte[] imageBytes = byteArrayOutputStream.toByteArray();
-
-                    base64EncodedImage.encodeContent(imageBytes);
-
-                    byteArrayOutputStream.close();
-
                     Feature feature = new Feature();
-                    feature.setType("LANDMARK_DETECTION");
-                    feature.setMaxResults(10);
+                    feature.setType("LABEL_DETECTION");
+                    feature.setMaxResults(20);
 
                     final List<Feature> featureList = new ArrayList<>();
                     featureList.add(feature);
                     final List<AnnotateImageRequest> annotateImageRequests = new ArrayList<>();
 
-
                     AnnotateImageRequest annotateImageReq = new AnnotateImageRequest();
                     annotateImageReq.setFeatures(featureList);
-                    annotateImageReq.setImage(base64EncodedImage);
+                    annotateImageReq.setImage(getImageEncodeImage(ChooseActivity.PUB));
                     annotateImageRequests.add(annotateImageReq);
 
 
@@ -480,6 +446,20 @@ public class CameraActivity extends AppCompatActivity {
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    @NonNull
+    private Image getImageEncodeImage(Bitmap bitmap) {
+        Image base64EncodedImage = new Image();
+        // Convert the bitmap to a JPEG
+        // Just in case it's a format that Android understands but Cloud Vision
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
+        byte[] imageBytes = byteArrayOutputStream.toByteArray();
+
+        // Base64 encode the JPEG
+        base64EncodedImage.encodeContent(imageBytes);
+        return base64EncodedImage;
     }
 
     private String convertResponseToString(BatchAnnotateImagesResponse response) {

@@ -28,6 +28,8 @@ public class ChooseActivity extends AppCompatActivity {
     ImageView imageViewGallery;
     View decorView;
 
+    public static Bitmap PUB;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -129,6 +131,9 @@ public class ChooseActivity extends AppCompatActivity {
             if(picturePath.startsWith("/")) picturePath = picturePath.substring(1);
             c.close();
             Bitmap thumbnail = (BitmapFactory.decodeFile(picturePath));
+
+            PUB = thumbnail;
+
             Drawable d = new BitmapDrawable(thumbnail);
             imageViewGallery.setBackground(d);
         }
