@@ -37,6 +37,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -71,7 +72,6 @@ import java.util.UUID;
 
 public class CameraActivity extends AppCompatActivity {
 
-
     private static final int PIXEL_WIDTH = 144;
     private static final int PIXEL_HEIGHT = 256;
 
@@ -88,11 +88,14 @@ public class CameraActivity extends AppCompatActivity {
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
 
+    //list information
     List<EntityAnnotation> entity_list;
     List<String> array_list;
 
     TextView textView;
     ListView listview;
+    ProgressBar progress;
+
     private SlidingUpPanelLayout mLayout;
     private TextureView textureView;
     private String cameraId;
@@ -163,6 +166,8 @@ public class CameraActivity extends AppCompatActivity {
         tx.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                progress=findViewById(R.id.progressBar);
+                progress.setVisibility(View.VISIBLE);
                 takePicture();
             }
         });
@@ -176,7 +181,6 @@ public class CameraActivity extends AppCompatActivity {
      * Initialization of the textview and SlidingUpPanelLayout
      */
     public void init() {
-
         mLayout = findViewById(R.id.sliding_layout);
         textView = findViewById(R.id.list_main);
         listview = findViewById(R.id.list);
@@ -410,13 +414,17 @@ public class CameraActivity extends AppCompatActivity {
                         }
 
                         protected void onPostExecute(String result) {
+
                             System.out.println(result);
-//                            visionAPIData.setText(result);
-//                            imageUploadProgress.setVisibility(View.INVISIBLE);
+                            progress.setVisibility(View.INVISIBLE);
+                            onResume();
+
+
+                            //
                         }
                     }.execute();
 
-
+                    onPause();
 
                 }
             };
@@ -537,6 +545,7 @@ public class CameraActivity extends AppCompatActivity {
     private void openCamera() {
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
+            assert manager != null;
             cameraId = manager.getCameraIdList()[0];
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
@@ -616,10 +625,9 @@ public class CameraActivity extends AppCompatActivity {
 
         } else {
 
-            super.onBackPressed();
-
             startActivity(new Intent(CameraActivity.this,
                     ChooseActivity.class));
+
         }
     }
 

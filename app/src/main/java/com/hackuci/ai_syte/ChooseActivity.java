@@ -1,7 +1,6 @@
 package com.hackuci.ai_syte;
 
 import android.app.ActionBar;
-import android.app.Fragment;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -44,11 +43,6 @@ public class ChooseActivity extends AppCompatActivity {
 
         // connect the variable to the images_proj.xml
         imageViewGallery = findViewById(R.id.gallery);
-        if (savedInstanceState == null) {
-            getFragmentManager().beginTransaction()
-                    .add(R.id.container, new Fragment())
-                    .commit();
-        }
 
         ImageButton cameraButton = findViewById(R.id.camera);
         cameraButton.setOnClickListener(new View.OnClickListener() {
