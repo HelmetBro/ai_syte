@@ -59,6 +59,10 @@ import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
 import com.google.api.services.vision.v1.model.EntityAnnotation;
 import com.google.api.services.vision.v1.model.Feature;
 import com.google.api.services.vision.v1.model.Image;
+import com.ibm.watson.developer_cloud.discovery.v1.Discovery;
+import com.ibm.watson.developer_cloud.language_translator.v2.LanguageTranslator;
+import com.ibm.watson.developer_cloud.language_translator.v2.model.TranslationResult;
+import com.ibm.watson.developer_cloud.language_translator.v2.util.Language;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.io.ByteArrayOutputStream;
@@ -67,6 +71,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -99,8 +104,11 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     //list information
-    List<EntityAnnotation> entity_list;
-    List<String> array_list;
+    List<EntityAnnotation> entity_list = new ArrayList<>();
+    List<String> array_list = Arrays.asList(
+            "Nothing's here yet!",
+            "Try adding a picture or video,",
+            "and results will populate here, like this!");
 
     TextView textView;
     ListView listview;
@@ -240,7 +248,7 @@ public class CameraActivity extends AppCompatActivity {
                 }
 
                 protected void onPostExecute(String result) {
-                    System.out.println(result);
+                    setListview();
                 }
             }.execute();
 
@@ -259,36 +267,66 @@ public class CameraActivity extends AppCompatActivity {
         listview = findViewById(R.id.list);
     }
 
+    @SuppressLint("StaticFieldLeak")
     public List<String> array_list() {
-        array_list = Arrays.asList(
-                "This",
-                "Is",
-                "An",
-                "Example",
-                "ListView",
-                "That",
-                "You",
-                "Can",
-                "Scroll",
-                ".",
-                "It",
-                "Shows",
-                "How",
-                "Any",
-                "Scrollable",
-                "View",
-                "Can",
-                "Be",
-                "Included",
-                "As",
-                "A",
-                "Child",
-                "Of",
-                "SlidingUpPanelLayout"
-        );
+
+        final List<String> results = new ArrayList<>();
+
+        if(!entity_list.isEmpty()){
+
+            Discovery discovery = new Discovery("2017-04-02");
+            discovery.setEndPoint("https://gateway.watsonplatform.net/discovery/api/");
+            final LanguageTranslator service = new LanguageTranslator();
+            service.setUsernameAndPassword("2e2b7763-6804-40bb-8038-99c92f84f5ff","obCwHhx8rPlY");
+
+            //For percentage number
+            DecimalFormat df = new DecimalFormat("#.00");
+
+            for(EntityAnnotation e : entity_list)//df.format(e.getConfidence() * 100)
+                results.add(e.getDescription() + "  -  Accuracy: " + 6 + "%"); //e.getDescription() + "  -  Accuracy: " + 6 + "%"
+
+
+            System.out.println(results);
+
+
+            new AsyncTask<Object, Void, String>() {
+                @Override
+                protected String doInBackground(Object... params) {
+
+                    final com.ibm.watson.developer_cloud.language_translator.v2.model.TranslateOptions
+                            translateOptions = new
+                            com.ibm.watson.developer_cloud.language_translator.v2.model.TranslateOptions
+                                    .Builder()
+                            .text(results)
+                            .source(Language.ENGLISH)
+                            .target(Language.SPANISH)
+                            .build();
+
+                    TranslationResult result = service.translate(translateOptions).execute();
+                    results.add(result.toString());
+                    return "";
+                }
+            }.execute();
+
+            array_list = results;
+
+        }
+
         return array_list;
     }
 
+
+    public static String targetLanguage(){
+        switch (ChooseActivity.LANGUAGE_CHOICE){
+            case "Mongolian":
+                return "en";
+            case "Spanish":
+                return "es";
+            case "Chinese":
+                return "zh-CN";
+        }
+        return "en";
+    }
     /**
      * Set array adapter to display a list of items.
      * Called a callback setOnItemClickListener method,
@@ -328,10 +366,6 @@ public class CameraActivity extends AppCompatActivity {
          * This is array adapter, it takes context of the activity as a first parameter,
          * layout of the listview as a second parameter and array as a third parameter.
          */
-//        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
-//                this,
-//                android.R.layout.simple_list_item_1,
-//                array_list());
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
                 this,
                 R.layout.list_entry,
@@ -512,12 +546,9 @@ public class CameraActivity extends AppCompatActivity {
                         }
 
                         protected void onPostExecute(String result) {
-
-                            System.out.println(result);
-                            progress.setVisibility(View.INVISIBLE);
-
+                            setListview();
                             onResume();
-
+                            progress.setVisibility(View.INVISIBLE);
                         }
                     }.execute();
 
@@ -585,7 +616,7 @@ public class CameraActivity extends AppCompatActivity {
     private String formatAnnotation(List<EntityAnnotation> entityAnnotation) {
         String message = "";
 
-       entity_list = entityAnnotation;
+        entity_list = entityAnnotation;
 
         if (entityAnnotation != null) {
             for (EntityAnnotation entity : entityAnnotation) {
@@ -715,7 +746,7 @@ public class CameraActivity extends AppCompatActivity {
 
         if (mLayout != null
                 && (mLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED
-                        || mLayout.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED)) {
+                || mLayout.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED)) {
 
             mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
 
