@@ -28,7 +28,7 @@ public class ChooseActivity extends AppCompatActivity {
     ImageView imageViewGallery;
     View decorView;
 
-    public static Bitmap PUB;
+    public static Bitmap theChosenOne;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,7 +132,7 @@ public class ChooseActivity extends AppCompatActivity {
             c.close();
             Bitmap thumbnail = (BitmapFactory.decodeFile(picturePath));
 
-            PUB = thumbnail;
+            theChosenOne = thumbnail;
 
             Drawable d = new BitmapDrawable(thumbnail);
             imageViewGallery.setBackground(d);

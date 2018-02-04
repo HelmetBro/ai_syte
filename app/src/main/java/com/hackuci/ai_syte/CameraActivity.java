@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -87,7 +88,9 @@ public class CameraActivity extends AppCompatActivity {
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
 
+    List<EntityAnnotation> entity_list;
     List<String> array_list;
+
     TextView textView;
     ListView listview;
     private SlidingUpPanelLayout mLayout;
@@ -361,13 +364,15 @@ public class CameraActivity extends AppCompatActivity {
                     feature.setType("LABEL_DETECTION");
                     feature.setMaxResults(20);
 
+                    ChooseActivity.theChosenOne = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
                     final List<Feature> featureList = new ArrayList<>();
                     featureList.add(feature);
                     final List<AnnotateImageRequest> annotateImageRequests = new ArrayList<>();
 
                     AnnotateImageRequest annotateImageReq = new AnnotateImageRequest();
                     annotateImageReq.setFeatures(featureList);
-                    annotateImageReq.setImage(getImageEncodeImage(ChooseActivity.PUB));
+                    annotateImageReq.setImage(getImageEncodeImage(ChooseActivity.theChosenOne));
                     annotateImageRequests.add(annotateImageReq);
 
 
@@ -410,6 +415,7 @@ public class CameraActivity extends AppCompatActivity {
 //                            imageUploadProgress.setVisibility(View.INVISIBLE);
                         }
                     }.execute();
+
 
 
                 }
@@ -473,6 +479,8 @@ public class CameraActivity extends AppCompatActivity {
 
     private String formatAnnotation(List<EntityAnnotation> entityAnnotation) {
         String message = "";
+
+       entity_list = entityAnnotation;
 
         if (entityAnnotation != null) {
             for (EntityAnnotation entity : entityAnnotation) {
