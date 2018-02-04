@@ -6,6 +6,8 @@ import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -17,7 +19,6 @@ import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.Image;
 import android.media.ImageReader;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -54,6 +55,7 @@ import com.google.api.services.vision.v1.model.EntityAnnotation;
 import com.google.api.services.vision.v1.model.Feature;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -67,8 +69,8 @@ import java.util.UUID;
 
 public class CameraActivity extends AppCompatActivity {
 
-    private static final int PIXEL_WIDTH = 1440;
-    private static final int PIXEL_HEIGHT = 2560;
+    private static final int PIXEL_WIDTH = 144;
+    private static final int PIXEL_HEIGHT = 256;
 
     //Check state orientation of output image
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
@@ -81,8 +83,10 @@ public class CameraActivity extends AppCompatActivity {
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
 
+    private static String FILE_PATH;
+
     private SlidingUpPanelLayout mLayout;
-    private static final String TAG = "MainAcitvity";
+    private static final String TAG = "CameraActivity";
     List<String> array_list;
     TextView textView ;
     ListView listview;
@@ -151,10 +155,9 @@ public class CameraActivity extends AppCompatActivity {
         /* HIDES STATUS BAR */
 
         textureView = findViewById(R.id.textureView);
-        //From Java 1.4 , you can use keyword 'assert' to check expression true or false
+        TextView tx = findViewById(R.id.list_main);
         assert textureView != null;
-        textureView.setSurfaceTextureListener(textureListener);
-        textureView.setOnClickListener(new View.OnClickListener() {
+        tx.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 takePicture();
@@ -347,11 +350,13 @@ public class CameraActivity extends AppCompatActivity {
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
 
-            file = new File(Environment.getExternalStorageDirectory() + "/" + UUID.randomUUID().toString() + ".jpg");
+
+            FILE_PATH = Environment.getExternalStorageDirectory() + "/" + UUID.randomUUID().toString() + ".jpg";
+            file = new File(FILE_PATH);
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader imageReader) {
-                    Image image = null;
+                    android.media.Image image = null;
                     try {
                         image = reader.acquireLatestImage();
                         ByteBuffer buffer = image.getPlanes()[0].getBuffer();
@@ -380,10 +385,37 @@ public class CameraActivity extends AppCompatActivity {
                             outputStream.close();
                     }
 
+
+//                    System.out.println(bytes);
+//
+//                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+//                    Bitmap bitmap = BitmapFactory.decodeFile(FILE_PATH);
+//                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
+//                    byte[] imageBytes = byteArrayOutputStream.toByteArray();
+//
+//                    com.google.api.services.vision.v1.model.Image base64EncodedImage =
+//                            new com.google.api.services.vision.v1.model.Image();
+//                    base64EncodedImage.encodeContent(imageBytes);
+//
+//                    System.out.println(base64EncodedImage.size());
+//                    System.out.println(base64EncodedImage.getContent());
+
+
+                    File imgFile = new  File(FILE_PATH);
+                    Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+
                     com.google.api.services.vision.v1.model.Image base64EncodedImage =
                             new com.google.api.services.vision.v1.model.Image();
-                    base64EncodedImage.encodeContent(bytes);
+                    // Convert the bitmap to a JPEG
+                    // Just in case it's a format that Android understands but Cloud Vision
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
+                    myBitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
+                    byte[] imageBytes = byteArrayOutputStream.toByteArray();
+
+                    base64EncodedImage.encodeContent(imageBytes);
+
+                    byteArrayOutputStream.close();
 
                     Feature feature = new Feature();
                     feature.setType("LANDMARK_DETECTION");
@@ -412,6 +444,8 @@ public class CameraActivity extends AppCompatActivity {
 
                                 HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
                                 JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+//                                NetHttpTransport httpTransport= new NetHttpTransport();
+//                                AndroidJsonFactory jsonFactory= new AndroidJsonFactory();
 
                                 VisionRequestInitializer requestInitializer = new VisionRequestInitializer("AIzaSyBVoIgIwQ5dWN0ZTTA4cnZHOUJws5CBZW0");
 
@@ -426,6 +460,8 @@ public class CameraActivity extends AppCompatActivity {
                                 Vision.Images.Annotate annotateRequest = vision.images().annotate(batchAnnotateImagesRequest);
                                 annotateRequest.setDisableGZipContent(true);
                                 BatchAnnotateImagesResponse response = annotateRequest.execute();
+
+                                System.out.println(response);
 
                                 return convertResponseToString(response);
                             } catch (GoogleJsonResponseException e) {
@@ -471,6 +507,7 @@ public class CameraActivity extends AppCompatActivity {
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
                     Toast.makeText(CameraActivity.this, "Saved " + file, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Saved " + file, Toast.LENGTH_SHORT).show();
                     createCameraPreview();
                 }
             };
@@ -541,6 +578,7 @@ public class CameraActivity extends AppCompatActivity {
                 @Override
                 public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
                     Toast.makeText(CameraActivity.this, "Changed", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Saved " + file, Toast.LENGTH_SHORT).show();
                 }
             }, null);
         } catch (CameraAccessException e) {
@@ -551,6 +589,7 @@ public class CameraActivity extends AppCompatActivity {
     private void updatePreview() {
         if (cameraDevice == null)
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "Saved " + file, Toast.LENGTH_SHORT).show();
         captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
         try {
             cameraCaptureSessions.setRepeatingRequest(captureRequestBuilder.build(), null, mBackgroundHandler);
@@ -587,6 +626,7 @@ public class CameraActivity extends AppCompatActivity {
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "You can't use camera without permission", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Saved " + file, Toast.LENGTH_SHORT).show();
                 finish();
             }
         }
