@@ -34,6 +34,8 @@ public class ChooseActivity extends AppCompatActivity implements AdapterView.OnI
     public static String LANGUAGE_CHOICE = "English"; //default
     public static Bitmap theChosenOne;
 
+    private boolean isGalleryOpen = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,9 +75,8 @@ public class ChooseActivity extends AppCompatActivity implements AdapterView.OnI
 
     // This function is called after clicking the Browse From Gallery button
     public boolean onButtonClicked(View view) {
-
-        // access the images gallery
-        Intent intent = new Intent(Intent.ACTION_PICK,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        isGalleryOpen = true;
+        Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, 2);
         return true;
     }
@@ -162,6 +163,14 @@ public class ChooseActivity extends AppCompatActivity implements AdapterView.OnI
     public boolean onMoreButtonClicked(View view) {
         startActivity(new Intent(ChooseActivity.this, MoreActivity.class));
         return true;
+    }
+
+    @Override
+    public void onBackPressed(){
+        if(isGalleryOpen){
+            startActivity(new Intent(ChooseActivity.this, ChooseActivity.class));
+            isGalleryOpen = false;
+        }
     }
 
 }

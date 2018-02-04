@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
+import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -284,18 +285,26 @@ public class CameraActivity extends AppCompatActivity {
             final LanguageTranslator service = new LanguageTranslator();
             service.setUsernameAndPassword("2e2b7763-6804-40bb-8038-99c92f84f5ff","obCwHhx8rPlY");
 
+            //additions
+            final ArrayList<String> addon = new ArrayList<>();
+
             //For percentage number
-            for(EntityAnnotation e : entity_list)
-                results.add(WordUtils.capitalizeFully(e.getDescription()) +
-                        "  -  : " +
+            for(EntityAnnotation e : entity_list){
+                results.add(WordUtils.capitalizeFully(e.getDescription()));
+                addon.add("  |  " +
                         String.format("%.2f", e.getScore() * 100) +
                         "%");
+            }
 
             new AsyncTask<Object, Void, String>() {
                 @Override
                 protected String doInBackground(Object... params) {
 
                     if(Objects.equals(ChooseActivity.LANGUAGE_CHOICE, "English")){
+
+                        for(int i = 0; i < results.size(); i++)
+                            results.set(i, results.get(i) + addon.get(i));
+
                         return "";
                     }
 
@@ -338,8 +347,11 @@ public class CameraActivity extends AppCompatActivity {
                     List<Translation> translations = result.getTranslations();
 
                     results.clear();
-                    for(Translation t : translations)
-                        results.add(t.getTranslation());
+                    int count = 0;
+                    for(Translation t : translations){
+                        results.add(t.getTranslation() + addon.get(count));
+                        count++;
+                    }
 
                     return "";
                 }
@@ -368,7 +380,7 @@ public class CameraActivity extends AppCompatActivity {
 
                 String name = (String) listview.getItemAtPosition(position);
 
-                String search = name.split("-")[0];
+                String search = name.split("\\|")[0];
                 search = search.trim();
 
                 Pattern p = Pattern.compile("%20");
@@ -649,7 +661,8 @@ public class CameraActivity extends AppCompatActivity {
         try {
             SurfaceTexture texture = textureView.getSurfaceTexture();
             assert texture != null;
-            texture.setDefaultBufferSize(imageDimension.getWidth(), imageDimension.getHeight());
+            texture.setDefaultBufferSize(imageDimension.getWidth(),
+                    (int)(imageDimension.getWidth() / 1440f * 2560f));
             Surface surface = new Surface(texture);
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureRequestBuilder.addTarget(surface);
