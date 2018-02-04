@@ -31,12 +31,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
+import android.view.Gravity;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -72,8 +76,14 @@ import java.util.UUID;
 
 public class CameraActivity extends AppCompatActivity {
 
-    private static final int PIXEL_WIDTH = 144;
-    private static final int PIXEL_HEIGHT = 256;
+    private static final int PIXEL_WIDTH = 1080;
+    private static final int PIXEL_HEIGHT = 1920;
+
+    private static final int MAX_RESULTS = 20;
+
+    //start transparency values
+    float start = 0.4f;
+    float end = 1;
 
     //Check state orientation of output image
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
@@ -95,6 +105,9 @@ public class CameraActivity extends AppCompatActivity {
     TextView textView;
     ListView listview;
     ProgressBar progress;
+    PopupWindow popUp;
+
+    public static boolean fromGallery = false;
 
     private SlidingUpPanelLayout mLayout;
     private TextureView textureView;
@@ -149,6 +162,7 @@ public class CameraActivity extends AppCompatActivity {
     public CameraActivity() {
     }
 
+    @SuppressLint("StaticFieldLeak")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -175,6 +189,65 @@ public class CameraActivity extends AppCompatActivity {
         init();    // call init method
         setListview();
         panelListener();
+
+        if(fromGallery){
+
+            Feature feature = new Feature();
+            feature.setType("LABEL_DETECTION");
+            feature.setMaxResults(MAX_RESULTS);
+
+            final List<Feature> featureList = new ArrayList<>();
+            featureList.add(feature);
+            final List<AnnotateImageRequest> annotateImageRequests = new ArrayList<>();
+
+            AnnotateImageRequest annotateImageReq = new AnnotateImageRequest();
+            annotateImageReq.setFeatures(featureList);
+            annotateImageReq.setImage(getImageEncodeImage(ChooseActivity.theChosenOne));
+            annotateImageRequests.add(annotateImageReq);
+
+
+            new AsyncTask<Object, Void, String>() {
+                @Override
+                protected String doInBackground(Object... params) {
+                    try {
+
+                        HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
+                        JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+
+                        VisionRequestInitializer requestInitializer = new VisionRequestInitializer("AIzaSyB7nfLCVc-97Zfagn8KhRJvSMBrz1j716w");
+
+                        Vision.Builder builder = new Vision.Builder(httpTransport, jsonFactory, null);
+                        builder.setVisionRequestInitializer(requestInitializer);
+
+                        Vision vision = builder.build();
+
+                        BatchAnnotateImagesRequest batchAnnotateImagesRequest = new BatchAnnotateImagesRequest();
+                        batchAnnotateImagesRequest.setRequests(annotateImageRequests);
+
+                        Vision.Images.Annotate annotateRequest = vision.images().annotate(batchAnnotateImagesRequest);
+                        annotateRequest.setDisableGZipContent(true);
+                        BatchAnnotateImagesResponse response = annotateRequest.execute();
+
+                        System.out.println(response);
+
+                        return convertResponseToString(response);
+                    } catch (GoogleJsonResponseException e) {
+                        Log.d(TAG, "failed to make API request because " + e.getContent());
+                    } catch (IOException e) {
+                        Log.d(TAG, "failed to make API request because of other IOException " + e.getMessage());
+                    }
+                    return "Cloud Vision API request failed. Check logs for details.";
+                }
+
+                protected void onPostExecute(String result) {
+                    System.out.println(result);
+                }
+            }.execute();
+
+        }
+
+        fromGallery = false;
+
     }
 
     /**
@@ -223,13 +296,31 @@ public class CameraActivity extends AppCompatActivity {
      */
     public void setListview() {
 
+        mLayout.setAlpha(start);
+
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView parent, View view, int position, long id) {
 
-                mLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
-                textView.setText(array_list().get(position));
-               // Toast.makeText(CameraActivity.this, "onItemClick", Toast.LENGTH_SHORT).show();
+                mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                LinearLayout layout;
+                TextView tv;
+                WindowManager.LayoutParams params;
+
+                popUp = new PopupWindow(CameraActivity.this);
+                layout = new LinearLayout(CameraActivity.this);
+                layout.setBackgroundResource(R.drawable.round_layout);
+                popUp.setBackgroundDrawable(getResources().getDrawable(R.drawable.round_layout));
+                tv = new TextView(CameraActivity.this);
+                params = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
+                        WindowManager.LayoutParams.WRAP_CONTENT);
+                layout.setOrientation(LinearLayout.VERTICAL);
+                tv.setText("Object name appears here in large font");
+                popUp.setHeight(1300);
+                popUp.setWidth(1000);
+                layout.addView(tv, params);
+                popUp.setContentView(layout);
+                popUp.showAtLocation(findViewById(R.id.list_main), Gravity.CENTER, 0, -70);
             }
         });
 
@@ -256,7 +347,7 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
 
-
+                mLayout.setAlpha((start + (slideOffset * (end - start))));
                 Log.e(TAG, "onPanelSlide, offset " + slideOffset);
             }
 
@@ -310,6 +401,7 @@ public class CameraActivity extends AppCompatActivity {
     private void takePicture() {
         if (cameraDevice == null)
             return;
+
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
             assert manager != null;
@@ -329,9 +421,10 @@ public class CameraActivity extends AppCompatActivity {
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
 
-
             FILE_PATH = Environment.getExternalStorageDirectory() + "/" + UUID.randomUUID().toString() + ".jpg";
+
             file = new File(FILE_PATH);
+
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader imageReader) {
@@ -346,15 +439,16 @@ public class CameraActivity extends AppCompatActivity {
                     } catch (IOException e) {
                         e.printStackTrace();
                     } finally {
-                        {
-                            if (image != null)
-                                image.close();
-                        }
+                        if (image != null)
+                            image.close();
                     }
                 }
 
                 @SuppressLint("StaticFieldLeak")
                 private void save(byte[] bytes) throws IOException {
+
+
+
                     OutputStream outputStream = null;
                     try {
                         outputStream = new FileOutputStream(file);
@@ -366,7 +460,7 @@ public class CameraActivity extends AppCompatActivity {
 
                     Feature feature = new Feature();
                     feature.setType("LABEL_DETECTION");
-                    feature.setMaxResults(20);
+                    feature.setMaxResults(MAX_RESULTS);
 
                     ChooseActivity.theChosenOne = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
 
@@ -417,10 +511,9 @@ public class CameraActivity extends AppCompatActivity {
 
                             System.out.println(result);
                             progress.setVisibility(View.INVISIBLE);
+
                             onResume();
 
-
-                            //
                         }
                     }.execute();
 
@@ -616,10 +709,9 @@ public class CameraActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
 
-        if (mLayout != null &&
-                (mLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED
-                        || mLayout.getPanelState() ==
-                        SlidingUpPanelLayout.PanelState.ANCHORED)) {
+        if (mLayout != null
+                && (mLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED
+                        || mLayout.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED)) {
 
             mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
 

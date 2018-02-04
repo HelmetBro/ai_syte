@@ -5,28 +5,32 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
-public class ChooseActivity extends AppCompatActivity {
+public class ChooseActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener{
 
     // define the variable that will show the gallery images
     ImageView imageViewGallery;
     View decorView;
+    Spinner language;
+    private String[] choices = new String[]{"English", "Spanish", "Mongolian", "Chinese"};
 
+    public static String LANGUAGE_CHOICE = "English"; //default
     public static Bitmap theChosenOne;
 
     @Override
@@ -43,6 +47,15 @@ public class ChooseActivity extends AppCompatActivity {
 
         // connect the variable to the images_proj.xml
         imageViewGallery = findViewById(R.id.gallery);
+
+        language = findViewById(R.id.language);
+        language.setOnItemSelectedListener(this);
+        ArrayAdapter<String> dataAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, choices);
+        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        language.setAdapter(dataAdapter);
+
+        language.setBackgroundResource(R.drawable.smaller_round_layout);
+        language.setPopupBackgroundResource(R.drawable.round_layout);
 
         ImageButton cameraButton = findViewById(R.id.camera);
         cameraButton.setOnClickListener(new View.OnClickListener() {
@@ -94,7 +107,7 @@ public class ChooseActivity extends AppCompatActivity {
                 bitmap = BitmapFactory.decodeFile(f.getAbsolutePath(),
                         bitmapOptions);
 
-                imageViewGallery.setImageBitmap(bitmap);
+                theChosenOne = bitmap;
 
                 String path = android.os.Environment
                         .getExternalStorageDirectory()+File.separator;
@@ -124,12 +137,21 @@ public class ChooseActivity extends AppCompatActivity {
             String picturePath = c.getString(columnIndex);
             if(picturePath.startsWith("/")) picturePath = picturePath.substring(1);
             c.close();
-            Bitmap thumbnail = (BitmapFactory.decodeFile(picturePath));
+            theChosenOne = (BitmapFactory.decodeFile(picturePath));
 
-            theChosenOne = thumbnail;
-
-            Drawable d = new BitmapDrawable(thumbnail);
-            imageViewGallery.setBackground(d);
+            //switches to camera
+            startActivity(new Intent(ChooseActivity.this, CameraActivity.class));
+            CameraActivity.fromGallery = true;
         }
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+        LANGUAGE_CHOICE = (String) adapterView.getItemAtPosition(i);
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {
+
     }
 }
