@@ -77,6 +77,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -85,7 +86,7 @@ public class CameraActivity extends AppCompatActivity {
     private static final int PIXEL_WIDTH = 1080;
     private static final int PIXEL_HEIGHT = 1920;
 
-    private static final int MAX_RESULTS = 20;
+    private static final int MAX_RESULTS = 30;
 
     //start transparency values
     float start = 0.4f;
@@ -275,27 +276,23 @@ public class CameraActivity extends AppCompatActivity {
 
         if(!entity_list.isEmpty()){
 
-            Discovery discovery = new Discovery("2017-04-02");
-            discovery.setEndPoint("https://gateway.watsonplatform.net/discovery/api/");
             final LanguageTranslator service = new LanguageTranslator();
             service.setUsernameAndPassword("2e2b7763-6804-40bb-8038-99c92f84f5ff","obCwHhx8rPlY");
 
             //For percentage number
-            for(EntityAnnotation e : entity_list)//df.format(e.getConfidence() * 100)
-                results.add(e.getDescription() + "  -  Accuracy: " + String.format("%.2f", (e.getConfidence() * 100)) + "%");
+            for(EntityAnnotation e : entity_list)
+                results.add(e.getDescription() + "  -  Accuracy: " + String.format("%.2f", e.getScore() * 100) + "%");
 
             new AsyncTask<Object, Void, String>() {
                 @Override
                 protected String doInBackground(Object... params) {
 
+                    if(Objects.equals(ChooseActivity.LANGUAGE_CHOICE, "English")){
+                        return "";
+                    }
+
                     com.ibm.watson.developer_cloud.language_translator.v2.model.TranslateOptions
-                            translateOptions = new
-                            com.ibm.watson.developer_cloud.language_translator.v2.model.TranslateOptions
-                                    .Builder()
-                            .text(results)
-                            .source(Language.ENGLISH)
-                            .target(Language.ENGLISH)
-                            .build();
+                            translateOptions;
 
                     switch (ChooseActivity.LANGUAGE_CHOICE){
                         case "German":
@@ -316,7 +313,7 @@ public class CameraActivity extends AppCompatActivity {
                                     .target(Language.SPANISH)
                                     .build();
                             break;
-                        case "Japanese":
+                        default:
                             translateOptions = new
                                     com.ibm.watson.developer_cloud.language_translator.v2.model.TranslateOptions
                                             .Builder()
@@ -580,8 +577,6 @@ public class CameraActivity extends AppCompatActivity {
                 @Override
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
-                    Toast.makeText(CameraActivity.this, "Saved " + file, Toast.LENGTH_SHORT).show();
-                    Toast.makeText(getApplicationContext(), "Saved " + file, Toast.LENGTH_SHORT).show();
                     createCameraPreview();
                 }
             };
@@ -667,8 +662,6 @@ public class CameraActivity extends AppCompatActivity {
 
                 @Override
                 public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
-                    Toast.makeText(CameraActivity.this, "Changed", Toast.LENGTH_SHORT).show();
-                    Toast.makeText(getApplicationContext(), "Saved " + file, Toast.LENGTH_SHORT).show();
                 }
             }, null);
         } catch (CameraAccessException e) {
@@ -679,7 +672,6 @@ public class CameraActivity extends AppCompatActivity {
     private void updatePreview() {
         if (cameraDevice == null)
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();
-        Toast.makeText(getApplicationContext(), "Saved " + file, Toast.LENGTH_SHORT).show();
         captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
         try {
             cameraCaptureSessions.setRepeatingRequest(captureRequestBuilder.build(), null, mBackgroundHandler);
@@ -716,8 +708,7 @@ public class CameraActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "You can't use camera without permission", Toast.LENGTH_SHORT).show();
-                Toast.makeText(getApplicationContext(), "Saved " + file, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Can't operate without permission rights.", Toast.LENGTH_SHORT).show();
                 finish();
             }
         }
