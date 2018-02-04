@@ -28,7 +28,7 @@ public class ChooseActivity extends AppCompatActivity implements AdapterView.OnI
     ImageView imageViewGallery;
     View decorView;
     Spinner language;
-    private String[] choices = new String[]{"English", "Spanish", "Mongolian", "Chinese"};
+    private String[] choices = new String[]{"English", "Spanish", "German", "Japanese"};
 
     public static String LANGUAGE_CHOICE = "English"; //default
     public static Bitmap theChosenOne;

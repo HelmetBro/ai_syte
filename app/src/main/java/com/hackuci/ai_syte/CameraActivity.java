@@ -61,6 +61,7 @@ import com.google.api.services.vision.v1.model.Feature;
 import com.google.api.services.vision.v1.model.Image;
 import com.ibm.watson.developer_cloud.discovery.v1.Discovery;
 import com.ibm.watson.developer_cloud.language_translator.v2.LanguageTranslator;
+import com.ibm.watson.developer_cloud.language_translator.v2.model.Translation;
 import com.ibm.watson.developer_cloud.language_translator.v2.model.TranslationResult;
 import com.ibm.watson.developer_cloud.language_translator.v2.util.Language;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
@@ -267,7 +268,7 @@ public class CameraActivity extends AppCompatActivity {
         listview = findViewById(R.id.list);
     }
 
-    @SuppressLint("StaticFieldLeak")
+    @SuppressLint({"StaticFieldLeak", "DefaultLocale"})
     public List<String> array_list() {
 
         final List<String> results = new ArrayList<>();
@@ -280,30 +281,61 @@ public class CameraActivity extends AppCompatActivity {
             service.setUsernameAndPassword("2e2b7763-6804-40bb-8038-99c92f84f5ff","obCwHhx8rPlY");
 
             //For percentage number
-            DecimalFormat df = new DecimalFormat("#.00");
-
             for(EntityAnnotation e : entity_list)//df.format(e.getConfidence() * 100)
-                results.add(e.getDescription() + "  -  Accuracy: " + 6 + "%"); //e.getDescription() + "  -  Accuracy: " + 6 + "%"
-
-
-            System.out.println(results);
-
+                results.add(e.getDescription() + "  -  Accuracy: " + String.format("%.2f", (e.getConfidence() * 100)) + "%");
 
             new AsyncTask<Object, Void, String>() {
                 @Override
                 protected String doInBackground(Object... params) {
 
-                    final com.ibm.watson.developer_cloud.language_translator.v2.model.TranslateOptions
+                    com.ibm.watson.developer_cloud.language_translator.v2.model.TranslateOptions
                             translateOptions = new
                             com.ibm.watson.developer_cloud.language_translator.v2.model.TranslateOptions
                                     .Builder()
                             .text(results)
                             .source(Language.ENGLISH)
-                            .target(Language.SPANISH)
+                            .target(Language.ENGLISH)
                             .build();
 
+                    switch (ChooseActivity.LANGUAGE_CHOICE){
+                        case "German":
+                            translateOptions = new
+                                    com.ibm.watson.developer_cloud.language_translator.v2.model.TranslateOptions
+                                            .Builder()
+                                    .text(results)
+                                    .source(Language.ENGLISH)
+                                    .target(Language.GERMAN)
+                                    .build();
+                            break;
+                        case "Spanish":
+                            translateOptions = new
+                                    com.ibm.watson.developer_cloud.language_translator.v2.model.TranslateOptions
+                                            .Builder()
+                                    .text(results)
+                                    .source(Language.ENGLISH)
+                                    .target(Language.SPANISH)
+                                    .build();
+                            break;
+                        case "Japanese":
+                            translateOptions = new
+                                    com.ibm.watson.developer_cloud.language_translator.v2.model.TranslateOptions
+                                            .Builder()
+                                    .text(results)
+                                    .source(Language.ENGLISH)
+                                    .target(Language.JAPANESE)
+                                    .build();
+                            break;
+                    }
+
+                    //gets results
                     TranslationResult result = service.translate(translateOptions).execute();
-                    results.add(result.toString());
+
+                    List<Translation> translations = result.getTranslations();
+
+                    results.clear();
+                    for(Translation t : translations)
+                        results.add(t.getTranslation());
+
                     return "";
                 }
             }.execute();
@@ -315,18 +347,6 @@ public class CameraActivity extends AppCompatActivity {
         return array_list;
     }
 
-
-    public static String targetLanguage(){
-        switch (ChooseActivity.LANGUAGE_CHOICE){
-            case "Mongolian":
-                return "en";
-            case "Spanish":
-                return "es";
-            case "Chinese":
-                return "zh-CN";
-        }
-        return "en";
-    }
     /**
      * Set array adapter to display a list of items.
      * Called a callback setOnItemClickListener method,
@@ -484,8 +504,6 @@ public class CameraActivity extends AppCompatActivity {
 
                 @SuppressLint("StaticFieldLeak")
                 private void save(byte[] bytes) throws IOException {
-
-
 
                     OutputStream outputStream = null;
                     try {
