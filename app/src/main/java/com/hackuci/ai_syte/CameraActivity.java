@@ -66,6 +66,8 @@ import com.ibm.watson.developer_cloud.language_translator.v2.model.TranslationRe
 import com.ibm.watson.developer_cloud.language_translator.v2.util.Language;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import org.apache.commons.lang3.text.WordUtils;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -281,7 +283,10 @@ public class CameraActivity extends AppCompatActivity {
 
             //For percentage number
             for(EntityAnnotation e : entity_list)
-                results.add(e.getDescription() + "  -  Accuracy: " + String.format("%.2f", e.getScore() * 100) + "%");
+                results.add(WordUtils.capitalizeFully(e.getDescription()) +
+                        "  -  : " +
+                        String.format("%.2f", e.getScore() * 100) +
+                        "%");
 
             new AsyncTask<Object, Void, String>() {
                 @Override

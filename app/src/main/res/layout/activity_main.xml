@@ -38,7 +38,7 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:clickable="true"
-            android:background="#ffffff"
+            android:background="@color/colorPrimary"
             android:focusable="true"
             android:id="@+id/dragView">
 
