@@ -67,7 +67,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+
 public class CameraActivity extends AppCompatActivity {
+
 
     private static final int PIXEL_WIDTH = 144;
     private static final int PIXEL_HEIGHT = 256;
@@ -75,6 +77,8 @@ public class CameraActivity extends AppCompatActivity {
     //Check state orientation of output image
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_CAMERA_PERMISSION = 200;
+    private static final String TAG = "CameraActivity";
+    private static String FILE_PATH;
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -83,20 +87,36 @@ public class CameraActivity extends AppCompatActivity {
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
 
-    private static String FILE_PATH;
-
-    private SlidingUpPanelLayout mLayout;
-    private static final String TAG = "CameraActivity";
     List<String> array_list;
-    TextView textView ;
+    TextView textView;
     ListView listview;
-
+    private SlidingUpPanelLayout mLayout;
     private TextureView textureView;
     private String cameraId;
     private CameraDevice cameraDevice;
     private CameraCaptureSession cameraCaptureSessions;
     private CaptureRequest.Builder captureRequestBuilder;
     private Size imageDimension;
+    //Save to FILE
+    private File file;
+    private Handler mBackgroundHandler;
+    CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
+        @Override
+        public void onOpened(@NonNull CameraDevice camera) {
+            cameraDevice = camera;
+            createCameraPreview();
+        }
+
+        @Override
+        public void onDisconnected(@NonNull CameraDevice cameraDevice) {
+            cameraDevice.close();
+        }
+
+        @Override
+        public void onError(@NonNull CameraDevice cameraDevice, int i) {
+            cameraDevice.close();
+        }
+    };
     TextureView.SurfaceTextureListener textureListener = new TextureView.SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
@@ -118,26 +138,6 @@ public class CameraActivity extends AppCompatActivity {
 
         }
     };
-    //Save to FILE
-    private File file;
-    private Handler mBackgroundHandler;
-    CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
-        @Override
-        public void onOpened(@NonNull CameraDevice camera) {
-            cameraDevice = camera;
-            createCameraPreview();
-        }
-
-        @Override
-        public void onDisconnected(@NonNull CameraDevice cameraDevice) {
-            cameraDevice.close();
-        }
-
-        @Override
-        public void onError(@NonNull CameraDevice cameraDevice, int i) {
-            cameraDevice.close();
-        }
-    };
     private HandlerThread mBackgroundThread;
 
     public CameraActivity() {
@@ -150,7 +150,7 @@ public class CameraActivity extends AppCompatActivity {
 
         /* HIDES STATUS BAR */
         ActionBar actionBar;
-        if((actionBar = getActionBar()) != null)
+        if ((actionBar = getActionBar()) != null)
             actionBar.hide();
         /* HIDES STATUS BAR */
 
@@ -172,13 +172,14 @@ public class CameraActivity extends AppCompatActivity {
     /**
      * Initialization of the textview and SlidingUpPanelLayout
      */
-    public void init(){
+    public void init() {
 
         mLayout = findViewById(R.id.sliding_layout);
         textView = findViewById(R.id.list_main);
         listview = findViewById(R.id.list);
     }
-    public List<String> array_list(){
+
+    public List<String> array_list() {
         array_list = Arrays.asList(
                 "This",
                 "Is",
@@ -207,12 +208,13 @@ public class CameraActivity extends AppCompatActivity {
         );
         return array_list;
     }
+
     /**
-     *  Set array adapter to display a list of items.
-     *  Called a callback setOnItemClickListener method,
-     *  It calls when user click on the list of item.
+     * Set array adapter to display a list of items.
+     * Called a callback setOnItemClickListener method,
+     * It calls when user click on the list of item.
      */
-    public void setListview(){
+    public void setListview() {
 
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -220,7 +222,7 @@ public class CameraActivity extends AppCompatActivity {
 
                 mLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
                 textView.setText(array_list().get(position));
-                Toast.makeText(CameraActivity.this, "onItemClick" , Toast.LENGTH_SHORT).show();
+               // Toast.makeText(CameraActivity.this, "onItemClick", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -228,7 +230,7 @@ public class CameraActivity extends AppCompatActivity {
          * This is array adapter, it takes context of the activity as a first parameter,
          * layout of the listview as a second parameter and array as a third parameter.
          */
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_1,
                 array_list());
@@ -236,46 +238,16 @@ public class CameraActivity extends AppCompatActivity {
         listview.setAdapter(arrayAdapter);
 
     }
+
     /**
      * Call setPanelSlidelistener method to listen open and close of slide panel
      **/
-    public void panelListener(){
+    public void panelListener() {
         mLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
 
             // During the transition of expand and collapse onPanelSlide function will be called.
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                 Log.e(TAG, "onPanelSlide, offset " + slideOffset);
@@ -386,6 +358,7 @@ public class CameraActivity extends AppCompatActivity {
                     }
 
 
+
 //                    System.out.println(bytes);
 //
 //                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -401,7 +374,7 @@ public class CameraActivity extends AppCompatActivity {
 //                    System.out.println(base64EncodedImage.getContent());
 
 
-                    File imgFile = new  File(FILE_PATH);
+                    File imgFile = new File(FILE_PATH);
                     Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
 
                     com.google.api.services.vision.v1.model.Image base64EncodedImage =
@@ -432,11 +405,6 @@ public class CameraActivity extends AppCompatActivity {
                     annotateImageRequests.add(annotateImageReq);
 
 
-
-
-
-
-
                     new AsyncTask<Object, Void, String>() {
                         @Override
                         protected String doInBackground(Object... params) {
@@ -444,10 +412,8 @@ public class CameraActivity extends AppCompatActivity {
 
                                 HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
                                 JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
-//                                NetHttpTransport httpTransport= new NetHttpTransport();
-//                                AndroidJsonFactory jsonFactory= new AndroidJsonFactory();
 
-                                VisionRequestInitializer requestInitializer = new VisionRequestInitializer("AIzaSyBVoIgIwQ5dWN0ZTTA4cnZHOUJws5CBZW0");
+                                VisionRequestInitializer requestInitializer = new VisionRequestInitializer("AIzaSyB7nfLCVc-97Zfagn8KhRJvSMBrz1j716w");
 
                                 Vision.Builder builder = new Vision.Builder(httpTransport, jsonFactory, null);
                                 builder.setVisionRequestInitializer(requestInitializer);
@@ -473,29 +439,11 @@ public class CameraActivity extends AppCompatActivity {
                         }
 
                         protected void onPostExecute(String result) {
-
                             System.out.println(result);
-
-
 //                            visionAPIData.setText(result);
 //                            imageUploadProgress.setVisibility(View.INVISIBLE);
                         }
                     }.execute();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                 }
