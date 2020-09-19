@@ -1,4 +1,4 @@
-# ai_syte
+# Ai_Syte
 
 ### This Android app successfully demonstrates the growing capabilities of the cloud computing of Artificial Intelligence. 
 
